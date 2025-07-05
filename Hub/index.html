@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Reporting Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+        .main-content {
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed + .main-content {
+            margin-left: 70px;
+        }
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-indigo-800 text-white w-64 flex flex-col">
+            <div class="p-4 flex items-center justify-between border-b border-indigo-700">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <span class="nav-text font-bold text-xl">Reporting Hub</span>
+                </div>
+                <button id="toggleSidebar" class="text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4">
+                <div class="px-4 mb-6">
+                    <div class="relative">
+                        <input type="text" placeholder="Search reports..." 
+                               class="w-full bg-indigo-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-indigo-300">
+                        <i class="fas fa-search absolute right-3 top-3 text-indigo-300"></i>
+                    </div>
+                </div>
+                <nav>
+                    <div class="px-4 mb-2">
+                        <p class="text-indigo-300 uppercase text-xs font-semibold nav-text">Main</p>
+                    </div>
+                    <a href="#" class="flex items-center px-4 py-3 text-white bg-indigo-900">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-file-alt mr-3"></i>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-chart-pie mr-3"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-database mr-3"></i>
+                        <span class="nav-text">Data Sources</span>
+                    </a>
+                    
+                    <div class="px-4 mt-6 mb-2">
+                        <p class="text-indigo-300 uppercase text-xs font-semibold nav-text">Tools</p>
+                    </div>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-cog mr-3"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-users mr-3"></i>
+                        <span class="nav-text">Team</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-indigo-200 hover:bg-indigo-700">
+                        <i class="fas fa-question-circle mr-3"></i>
+                        <span class="nav-text">Help</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-indigo-700">
+                <div class="flex items-center">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-10 h-10 rounded-full">
+                    <div class="ml-3 nav-text">
+                        <p class="text-white font-medium">Jane Smith</p>
+                        <p class="text-indigo-300 text-sm">Admin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-1 overflow-y-auto ml-64">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="px-6 py-4 flex items-center justify-between">
+                    <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                        <button class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <main class="p-6">
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Reports</p>
+                                <h3 class="text-3xl font-bold text-indigo-600">1,248</h3>
+                                <p class="text-green-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i> 12% from last month
+                                </p>
+                            </div>
+                            <div class="bg-indigo-100 p-3 rounded-full">
+                                <i class="fas fa-file-alt text-indigo-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Active Users</p>
+                                <h3 class="text-3xl font-bold text-blue-600">342</h3>
+                                <p class="text-green-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i> 8% from last month
+                                </p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Data Sources</p>
+                                <h3 class="text-3xl font-bold text-purple-600">18</h3>
+                                <p class="text-red-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-down mr-1"></i> 2% from last month
+                                </p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <i class="fas fa-database text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Alerts</p>
+                                <h3 class="text-3xl font-bold text-yellow-600">24</h3>
+                                <p class="text-green-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i> 15% from last month
+                                </p>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-full">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Report Activity</h2>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-lg">Week</button>
+                                <button class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">Month</button>
+                                <button class="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">Year</button>
+                            </div>
+                        </div>
+                        <canvas id="activityChart" height="250"></canvas>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Report Types</h2>
+                        <canvas id="typeChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Reports -->
+                <div class="bg-white rounded-xl shadow overflow-hidden mb-8">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-800">Recent Reports</h2>
+                        <button class="text-indigo-600 hover:text-indigo-800 font-medium">View All</button>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">Quarterly Sales Report</h3>
+                                    <p class="text-gray-500 text-sm mt-1">Generated 2 hours ago</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Completed</span>
+                                    <button class="text-indigo-600 hover:text-indigo-800">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">Customer Satisfaction Analysis</h3>
+                                    <p class="text-gray-500 text-sm mt-1">Generated 1 day ago</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Processing</span>
+                                    <button class="text-indigo-600 hover:text-indigo-800">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">Marketing Campaign ROI</h3>
+                                    <p class="text-gray-500 text-sm mt-1">Generated 3 days ago</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Completed</span>
+                                    <button class="text-indigo-600 hover:text-indigo-800">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Templates -->
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Report Templates</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="report-card bg-white rounded-xl shadow overflow-hidden transition-all duration-300">
+                        <div class="h-40 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-chart-bar text-white text-5xl"></i>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg text-gray-800 mb-2">Sales Performance</h3>
+                            <p class="text-gray-500 text-sm mb-4">Analyze sales trends and performance metrics across regions.</p>
+                            <button class="w-full bg-indigo-100 text-indigo-700 py-2 rounded-lg font-medium hover:bg-indigo-200 transition-colors">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-card bg-white rounded-xl shadow overflow-hidden transition-all duration-300">
+                        <div class="h-40 bg-gradient-to-r from-blue-500 to-teal-400 flex items-center justify-center">
+                            <i class="fas fa-users text-white text-5xl"></i>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg text-gray-800 mb-2">Customer Analysis</h3>
+                            <p class="text-gray-500 text-sm mb-4">Understand customer demographics and behavior patterns.</p>
+                            <button class="w-full bg-blue-100 text-blue-700 py-2 rounded-lg font-medium hover:bg-blue-200 transition-colors">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-card bg-white rounded-xl shadow overflow-hidden transition-all duration-300">
+                        <div class="h-40 bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-white text-5xl"></i>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg text-gray-800 mb-2">Risk Assessment</h3>
+                            <p class="text-gray-500 text-sm mb-4">Identify and evaluate potential risks to your business.</p>
+                            <button class="w-full bg-red-100 text-red-700 py-2 rounded-lg font-medium hover:bg-red-200 transition-colors">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('ml-64');
+            document.querySelector('.main-content').classList.toggle('ml-16');
+        });
+
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Activity Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            const activityChart = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [
+                        {
+                            label: 'Reports Generated',
+                            data: [65, 59, 80, 81, 56, 55, 40],
+                            borderColor: '#6366F1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Reports Viewed',
+                            data: [28, 48, 40, 19, 86, 27, 90],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Type Chart
+            const typeCtx = document.getElementById('typeChart').getContext('2d');
+            const typeChart = new Chart(typeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sales', 'Marketing', 'Finance', 'Operations', 'HR'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#6366F1',
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        });
+
+        // Simulate loading for report cards
+        document.querySelectorAll('.report-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const button = this.querySelector('button');
+                const originalText = button.textContent;
+                
+                button.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i> Loading...';
+                button.classList.add('opacity-75');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('opacity-75');
+                    alert('Report template loaded successfully!');
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
