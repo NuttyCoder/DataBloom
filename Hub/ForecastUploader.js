@@ -67,25 +67,25 @@ export default function ForecastUploader() {
         <div className="space-y-4">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-150 ease-in-out ${
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-300 ease-in-out ${
               isDragActive
                 ? 'border-4 border-indigo-500 bg-indigo-100 animate-pulse'
-                : 'border-gray-300 bg-white hover:border-indigo-300'
+                : 'border-gray-300 bg-white hover:border-indigo-300 hover:bg-indigo-50'
             }`}
           >
             <input {...getInputProps()} />
             {isDragActive ? (
-              <p className="text-indigo-700 font-medium">Drop the file here...</p>
+              <p className="text-indigo-700 font-semibold text-lg">Drop the file here to forecast</p>
             ) : (
-              <p className="text-gray-600">
-                Drag & drop a <strong>CSV/Excel</strong> file here, or{' '}
-                <span className="underline text-indigo-600">click to select</span>
+              <p className="text-gray-500 text-base">
+                Drag & drop a <strong>CSV/Excel</strong> file here,
+                <span className="underline text-indigo-600"> or click to select</span>
               </p>
             )}
             {file && <p className="mt-2 text-sm text-gray-700">Selected file: {file.name}</p>}
           </div>
           <div>
-            <label className="block mb-1">Forecast Periods (months):</label>
+            <label className="block mb-1 font-medium">Forecast Periods (months):</label>
             <Input
               type="number"
               value={periods}
@@ -93,7 +93,7 @@ export default function ForecastUploader() {
               onChange={(e) => setPeriods(Number(e.target.value))}
             />
           </div>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 font-medium">{error}</p>}
           <Button onClick={handleSubmit} disabled={loading}>
             {loading ? 'Forecasting...' : 'Run Forecast'}
           </Button>
@@ -124,4 +124,3 @@ export default function ForecastUploader() {
     </Card>
   );
 }
-
