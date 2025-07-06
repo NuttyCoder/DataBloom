@@ -21,7 +21,11 @@ export default function ForecastUploader() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
-    accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'], 'application/vnd.ms-excel': ['.xls'] }
+    accept: {
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.ms-excel": [".xls"]
+    }
   });
 
   const handleSubmit = async () => {
@@ -63,19 +67,22 @@ export default function ForecastUploader() {
         <div className="space-y-4">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer ${
-              isDragActive ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-150 ease-in-out ${
+              isDragActive
+                ? 'border-4 border-indigo-500 bg-indigo-100 animate-pulse'
+                : 'border-gray-300 bg-white hover:border-indigo-300'
             }`}
           >
             <input {...getInputProps()} />
             {isDragActive ? (
-              <p>Drop the file here...</p>
+              <p className="text-indigo-700 font-medium">Drop the file here...</p>
             ) : (
-              <p>
-                Drag & drop a CSV/Excel file here, or <span className="underline">click to select</span>
+              <p className="text-gray-600">
+                Drag & drop a <strong>CSV/Excel</strong> file here, or{' '}
+                <span className="underline text-indigo-600">click to select</span>
               </p>
             )}
-            {file && <p className="mt-2 text-sm">Selected file: {file.name}</p>}
+            {file && <p className="mt-2 text-sm text-gray-700">Selected file: {file.name}</p>}
           </div>
           <div>
             <label className="block mb-1">Forecast Periods (months):</label>
@@ -100,7 +107,7 @@ export default function ForecastUploader() {
                   <CardTitle>Product: {item.parent_product_code}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="text-sm overflow-auto">
+                  <pre className="text-sm overflow-auto bg-gray-50 p-2 rounded">
                     {JSON.stringify(item.forecast, null, 2)}
                   </pre>
                   <div className="mt-2">
@@ -117,3 +124,4 @@ export default function ForecastUploader() {
     </Card>
   );
 }
+
