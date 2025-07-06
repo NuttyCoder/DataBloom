@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
+// Allowed file extensions
+const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx'];
+
 export default function ForecastUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [periods, setPeriods] = useState<number>(3);
@@ -11,10 +14,24 @@ export default function ForecastUploader() {
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
+    // Handle rejections
+    if (fileRejections.length > 0) {
+      setFile(null);
+      setError("Unsupported file type. Please upload a CSV or Excel file.");
+      return;
+    }
+
     if (acceptedFiles && acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-      setError(null);
+      const selected = acceptedFiles[0];
+      const ext = selected.name.split('.').pop()?.toLowerCase() || '';
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        setFile(null);
+        setError("Invalid file extension. Accepted: .csv, .xls, .xlsx");
+      } else {
+        setFile(selected);
+        setError(null);
+      }
     }
   }, []);
 
@@ -22,9 +39,9 @@ export default function ForecastUploader() {
     onDrop,
     multiple: false,
     accept: {
-      "text/csv": [".csv"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-      "application/vnd.ms-excel": [".xls"]
+      'text/csv': ['.csv'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls']
     }
   });
 
