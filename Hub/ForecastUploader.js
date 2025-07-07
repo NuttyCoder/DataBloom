@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 
 // Allowed file extensions
 const ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx'];
+const PAGE_SIZE = 5;
 
 export default function ForecastUploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,16 +14,15 @@ export default function ForecastUploader() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [pageIndices, setPageIndices] = useState<Record<string, number>>({});
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
-    // Handle rejections
     if (fileRejections.length > 0) {
       setFile(null);
       setError("Unsupported file type. Please upload a CSV or Excel file.");
       return;
     }
-
-    if (acceptedFiles && acceptedFiles.length > 0) {
+    if (acceptedFiles.length > 0) {
       const selected = acceptedFiles[0];
       const ext = selected.name.split('.').pop()?.toLowerCase() || '';
       if (!ALLOWED_EXTENSIONS.includes(ext)) {
@@ -58,28 +58,46 @@ export default function ForecastUploader() {
     formData.append("periods", periods.toString());
 
     try {
-      const res = await fetch('/api/forecast', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch('/api/forecast', { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok) {
         setResults(data.results || []);
+        setPageIndices({});
       } else {
         setError(data.error || 'Forecast failed.');
       }
-    } catch (_) {
+    } catch {
       setError('Network error.');
     } finally {
       setLoading(false);
     }
   };
 
+  const downloadCSV = (code: string, forecast: any[]) => {
+    const header = ['date', 'forecast'];
+    const rows = forecast.map((f: any) => [f.ds, f.yhat]);
+    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${code}_forecast.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const onPageChange = (code: string, delta: number) => {
+    setPageIndices(prev => {
+      const current = prev[code] || 0;
+      const total = Math.ceil((results.find(r => r.parent_product_code === code)?.forecast.length || 0) / PAGE_SIZE);
+      const next = Math.min(Math.max(current + delta, 0), total - 1);
+      return { ...prev, [code]: next };
+    });
+  };
+
   return (
-    <Card className="max-w-xl mx-auto p-4">
-      <CardHeader>
-        <CardTitle>Upload Sales Data & Forecast</CardTitle>
-      </CardHeader>
+    <Card className="max-w-2xl mx-auto p-4">
+      <CardHeader><CardTitle>Upload Sales Data & Forecast</CardTitle></CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div
@@ -95,49 +113,74 @@ export default function ForecastUploader() {
               <p className="text-indigo-700 font-semibold text-lg">Drop the file here to forecast</p>
             ) : (
               <p className="text-gray-500 text-base">
-                Drag & drop a <strong>CSV/Excel</strong> file here,
-                <span className="underline text-indigo-600"> or click to select</span>
+                Drag & drop a <strong>CSV/Excel</strong> file here,{' '}
+                <span className="underline text-indigo-600">or click to select</span>
               </p>
             )}
-            {file && <p className="mt-2 text-sm text-gray-700">Selected file: {file.name}</p>}
           </div>
+          {file && <div className="text-center text-sm text-gray-700">Selected file: <span className="font-medium">{file.name}</span></div>}
           <div>
             <label className="block mb-1 font-medium">Forecast Periods (months):</label>
-            <Input
-              type="number"
-              value={periods}
-              min={1}
-              onChange={(e) => setPeriods(Number(e.target.value))}
-            />
+            <Input type="number" value={periods} min={1} onChange={e => setPeriods(Number(e.target.value))} />
           </div>
           {error && <p className="text-red-500 font-medium">{error}</p>}
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Forecasting...' : 'Run Forecast'}
-          </Button>
+          <Button onClick={handleSubmit} disabled={loading}>{loading ? 'Forecasting...' : 'Run Forecast'}</Button>
         </div>
 
         {results.length > 0 && (
-          <div className="mt-6 space-y-4">
-            {results.map((item) => (
-              <Card key={item.parent_product_code} className="border">
-                <CardHeader>
-                  <CardTitle>Product: {item.parent_product_code}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="text-sm overflow-auto bg-gray-50 p-2 rounded">
-                    {JSON.stringify(item.forecast, null, 2)}
-                  </pre>
-                  <div className="mt-2">
-                    <strong>MAPE:</strong> {item.kpis.MAPE?.toFixed(2)}%<br />
-                    <strong>Bias:</strong> {item.kpis.Bias?.toFixed(2)}<br />
-                    <strong>RMSE:</strong> {item.kpis.RMSE?.toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="mt-6 space-y-6">
+            {results.map(item => {
+              const { parent_product_code: code, forecast, kpis } = item;
+              const page = pageIndices[code] || 0;
+              const paged = forecast.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+              const totalPages = Math.ceil(forecast.length / PAGE_SIZE);
+
+              return (
+                <Card key={code} className="border">
+                  <CardHeader className="flex justify-between items-center">
+                    <CardTitle>Product: {code}</CardTitle>
+                    <Button size="sm" onClick={() => downloadCSV(code, forecast)}>Download CSV</Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-auto">
+                      <table className="min-w-full text-left text-sm">
+                        <thead>
+                          <tr>
+                            <th className="px-2 py-1">Date</th>
+                            <th className="px-2 py-1">Forecast</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paged.map((f: any, idx: number) => (
+                            <tr key={idx} className="border-t">
+                              <td className="px-2 py-1">{f.ds}</td>
+                              <td className="px-2 py-1">{f.yhat.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-2">
+                      <div>
+                        <Button size="sm" onClick={() => onPageChange(code, -1)} disabled={page === 0}>Prev</Button>
+                        <span className="mx-2">{page + 1} / {totalPages}</span>
+                        <Button size="sm" onClick={() => onPageChange(code, 1)} disabled={page + 1 === totalPages}>Next</Button>
+                      </div>
+                      <div className="mt-2">
+                        <strong>MAPE:</strong> {kpis.MAPE?.toFixed(2)}% &nbsp;
+                        <strong>Bias:</strong> {kpis.Bias?.toFixed(2)} &nbsp;
+                        <strong>RMSE:</strong> {kpis.RMSE?.toFixed(2)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
+
