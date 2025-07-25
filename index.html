@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bar Chart</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #1dd1a1 0%, #10ac84 100%);
+            color: white;
+            padding: 60px 20px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="10" r="0.8" fill="rgba(255,255,255,0.12)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-2px);
+        }
+
+        .suite-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 300;
+            margin: 0 0 30px 0;
+            opacity: 0.9;
+            line-height: 1.2;
+            background: linear-gradient(45deg, #ffffff, #a8e6cf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 20px;
+            line-height: 1.6;
+            margin: 0 auto 40px;
+            max-width: 600px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .feature-pills {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .feature-pill {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .feature-pill:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -40px auto 40px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 3;
+        }
+
+        .chart-types {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .chart-type {
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-type.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .chart-type[data-type="pie"].active {
+            background: linear-gradient(135deg, #9c88ff 0%, #ab47bc 100%);
+            box-shadow: 0 10px 20px rgba(156, 136, 255, 0.3);
+        }
+
+        .chart-type[data-type="scatter"].active {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .chart-type[data-type="table"].active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-type:not(.active) {
+            background: #f8f9fa;
+            color: #666;
+        }
+
+        .chart-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .chart-area {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .bar {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+            transform-origin: bottom;
+        }
+
+        .dot {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .add-data-panel {
+            background: #2c3e50;
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(44, 62, 80, 0.3);
+        }
+
+        .add-data-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #ecf0f1;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .chart-type[data-type="pie"].active ~ .chart-container .add-btn {
+            background: linear-gradient(135deg, #9c88ff 0%, #ab47bc 100%);
+        }
+
+        .chart-type[data-type="scatter"].active ~ .chart-container .add-btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        }
+
+        .chart-type[data-type="table"].active ~ .chart-container .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .quick-actions {
+            background: #27ae60;
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
+        }
+
+        .quick-actions-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.clear {
+            background: rgba(231, 76, 60, 0.8);
+            margin-top: 10px;
+        }
+
+        .action-btn.clear:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            fill: #666;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .axis-line {
+            stroke: #e0e0e0;
+            stroke-width: 1;
+        }
+
+        .grid-line {
+            stroke: #f5f5f5;
+            stroke-width: 1;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        .data-table .total-row {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table .total-row td {
+            border-bottom: none;
+            padding: 15px 12px;
+        }
+
+        .percentage-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .delete-btn {
+            background: #ef5350;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                flex-direction: column;
+            }
+            
+            .chart-types {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .chart-type {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+
+            .hero-section {
+                padding: 40px 20px 60px;
+            }
+
+            .back-button {
+                top: 20px;
+                left: 20px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .suite-badge {
+                font-size: 13px;
+                padding: 10px 16px;
+            }
+
+            .hero-description {
+                font-size: 18px;
+            }
+
+            .feature-pills {
+                gap: 10px;
+            }
+
+            .feature-pill {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+
+            .container {
+                margin: -30px 20px 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <a href="#" class="back-button">
+            ← Back
+        </a>
+        
+        <div class="hero-content">
+            <div class="suite-badge">
+                ✨ Interactive Data Suite ✨
+            </div>
+            
+            <h1 class="hero-title">Data Analysis</h1>
+            <h2 class="hero-subtitle">Made Beautiful</h2>
+            
+            <p class="hero-description">
+                Create stunning visualizations, explore data patterns, and master statistics 
+                through interactive charts and graphs
+            </p>
+            
+            <div class="feature-pills">
+                <div class="feature-pill">
+                    📊 Bar Charts
+                </div>
+                <div class="feature-pill">
+                    📈 Line Graphs
+                </div>
+                <div class="feature-pill">
+                    🥧 Pie Charts
+                </div>
+                <div class="feature-pill">
+                    ⚬ Scatter Plots
+                </div>
+                <div class="feature-pill">
+                    📋 Data Tables
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Chart Type Selection -->
+        <div class="chart-types">
+            <button class="chart-type active" data-type="bar">
+                📊 Bar Chart
+            </button>
+            <button class="chart-type" data-type="line">
+                📈 Line Chart
+            </button>
+            <button class="chart-type" data-type="pie">
+                🥧 Pie Chart
+            </button>
+            <button class="chart-type" data-type="scatter">
+                ⚬ Scatter Plot
+            </button>
+            <button class="chart-type" data-type="table">
+                📋 Data Table
+            </button>
+        </div>
+
+        <div class="chart-container">
+            <!-- Chart Area -->
+            <div class="chart-area">
+                <h2 class="chart-title">
+                    📊 Interactive Bar Chart
+                </h2>
+                <svg class="chart-svg" id="chartSvg">
+                    <!-- Chart will be rendered here -->
+                </svg>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Add Data Panel -->
+                <div class="add-data-panel">
+                    <h3 class="add-data-title">
+                        ➕ Add Data
+                    </h3>
+                    <div class="input-group">
+                        <label for="labelInput">Label</label>
+                        <input type="text" id="labelInput" placeholder="Enter label">
+                    </div>
+                    <div class="input-group" id="valueGroup">
+                        <label for="valueInput">Value</label>
+                        <input type="number" id="valueInput" placeholder="Enter value">
+                    </div>
+                    <div class="input-group" id="xValueGroup" style="display: none;">
+                        <label for="xValueInput">X Value</label>
+                        <input type="number" id="xValueInput" placeholder="Enter X value">
+                    </div>
+                    <div class="input-group" id="yValueGroup" style="display: none;">
+                        <label for="yValueInput">Y Value</label>
+                        <input type="number" id="yValueInput" placeholder="Enter Y value">
+                    </div>
+                    <button class="add-btn" onclick="addDataPoint()">
+                        ➕ Add Point
+                    </button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="quick-actions-title">
+                        ⚡ Quick Actions
+                    </h3>
+                    <button class="action-btn" onclick="loadSampleData()">
+                        📊 Sample Data
+                    </button>
+                    <button class="action-btn clear" onclick="clearAllData()">
+                        🗑️ Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Chart data storage
+        let chartData = [
+            { label: 'Apples', value: 25, color: '#4facfe' },
+            { label: 'Bananas', value: 35, color: '#00f2fe' },
+            { label: 'Oranges', value: 20, color: '#667eea' },
+            { label: 'Grapes', value: 30, color: '#764ba2' }
+        ];
+
+        let currentChartType = 'bar';
+
+        // Chart dimensions
+        const margin = { top: 20, right: 30, bottom: 60, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Initialize chart
+        function initChart() {
+            const svg = d3.select('#chartSvg');
+            svg.selectAll('*').remove();
+
+            const g = svg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            renderChart();
+        }
+
+        // Helper function to reset chart area
+        function resetChartArea() {
+            const chartArea = document.querySelector('.chart-area');
+            const svg = document.getElementById('chartSvg');
+            const existingTable = chartArea.querySelector('.data-table');
+            
+            // Show SVG for chart types, hide for table
+            if (currentChartType === 'table') {
+                svg.style.display = 'none';
+            } else {
+                svg.style.display = 'block';
+                if (existingTable) {
+                    existingTable.remove();
+                }
+            }
+        }
+
+        // Render chart based on current type
+        function renderChart() {
+            resetChartArea();
+            
+            if (currentChartType === 'bar') {
+                renderBarChart();
+            } else if (currentChartType === 'line') {
+                renderLineChart();
+            } else if (currentChartType === 'pie') {
+                renderPieChart();
+            } else if (currentChartType === 'scatter') {
+                renderScatterPlot();
+            } else if (currentChartType === 'table') {
+                renderDataTable();
+            }
+        }
+
+        // Render bar chart
+        function renderBarChart() {
+            const svg = d3.select('#chartSvg');
+            const g = svg.select('g');
+
+            // Clear existing chart
+            g.selectAll('*').remove();
+
+            if (chartData.length === 0) {
+                g.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height / 2)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#ccc')
+                    .attr('font-size', '18px')
+                    .text('No data to display');
+                return;
+            }
+
+            // Scales
+            const xScale = d3.scaleBand()
+                .domain(chartData.map(d => d.label))
+                .range([0, width])
+                .padding(0.2);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(chartData, d => d.value)])
+                .range([height, 0]);
+
+            // Grid lines
+            g.selectAll('.grid-line')
+                .data(yScale.ticks())
+                .enter()
+                .append('line')
+                .attr('class', 'grid-line')
+                .attr('x1', 0)
+                .attr('x2', width)
+                .attr('y1', d => yScale(d))
+                .attr('y2', d => yScale(d));
+
+            // Bars
+            const bars = g.selectAll('.bar')
+                .data(chartData)
+                .enter()
+                .append('rect')
+                .attr('class', 'bar')
+                .attr('x', d => xScale(d.label))
+                .attr('y', height)
+                .attr('width', xScale.bandwidth())
+                .attr('height', 0)
+                .attr('fill', d => d.color)
+                .style('border-radius', '4px 4px 0 0');
+
+            // Animate bars
+            bars.transition()
+                .duration(800)
+                .delay((d, i) => i * 100)
+                .attr('y', d => yScale(d.value))
+                .attr('height', d => height - yScale(d.value));
+
+            // Add hover effects
+            bars.on('mouseover', function(event, d) {
+                const tooltip = d3.select('#tooltip');
+                tooltip.style('opacity', 1)
+                    .html(`<strong>${d.label}</strong><br>Value: ${d.value}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('opacity', 0.8);
+            })
+            .on('mouseout', function() {
+                d3.select('#tooltip').style('opacity', 0);
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('opacity', 1);
+            });
+
+            // X-axis
+            g.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(xScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Y-axis
+            g.append('g')
+                .call(d3.axisLeft(yScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Value labels on bars
+            g.selectAll('.value-label')
+                .data(chartData)
+                .enter()
+                .append('text')
+                .attr('class', 'value-label')
+                .attr('x', d => xScale(d.label) + xScale.bandwidth() / 2)
+                .attr('y', d => yScale(d.value) - 5)
+                .attr('text-anchor', 'middle')
+                .attr('fill', '#333')
+                .attr('font-size', '12px')
+                .attr('font-weight', 'bold')
+                .text(d => d.value)
+                .style('opacity', 0)
+                .transition()
+                .delay((d, i) => i * 100 + 800)
+                .duration(300)
+                .style('opacity', 1);
+        }
+
+        // Render line chart
+        function renderLineChart() {
+            const svg = d3.select('#chartSvg');
+            const g = svg.select('g');
+
+            // Clear existing chart
+            g.selectAll('*').remove();
+
+            if (chartData.length === 0) {
+                g.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height / 2)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#ccc')
+                    .attr('font-size', '18px')
+                    .text('No data to display');
+                return;
+            }
+
+            // Scales
+            const xScale = d3.scalePoint()
+                .domain(chartData.map(d => d.label))
+                .range([0, width])
+                .padding(0.1);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(chartData, d => d.value)])
+                .range([height, 0]);
+
+            // Grid lines
+            g.selectAll('.grid-line')
+                .data(yScale.ticks())
+                .enter()
+                .append('line')
+                .attr('class', 'grid-line')
+                .attr('x1', 0)
+                .attr('x2', width)
+                .attr('y1', d => yScale(d))
+                .attr('y2', d => yScale(d));
+
+            // Line generator
+            const line = d3.line()
+                .x(d => xScale(d.label))
+                .y(d => yScale(d.value))
+                .curve(d3.curveCardinal); // Smooth curve
+
+            // Add the line path
+            const path = g.append('path')
+                .datum(chartData)
+                .attr('fill', 'none')
+                .attr('stroke', '#27ae60')
+                .attr('stroke-width', 3)
+                .attr('d', line)
+                .style('opacity', 0);
+
+            // Get the total length of the path for animation
+            const totalLength = path.node().getTotalLength();
+
+            // Animate the line drawing
+            path
+                .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                .attr('stroke-dashoffset', totalLength)
+                .transition()
+                .duration(1500)
+                .ease(d3.easeLinear)
+                .attr('stroke-dashoffset', 0)
+                .style('opacity', 1);
+
+            // Add dots at data points
+            const dots = g.selectAll('.dot')
+                .data(chartData)
+                .enter()
+                .append('circle')
+                .attr('class', 'dot')
+                .attr('cx', d => xScale(d.label))
+                .attr('cy', d => yScale(d.value))
+                .attr('r', 0)
+                .attr('fill', '#27ae60')
+                .attr('stroke', 'white')
+                .attr('stroke-width', 2)
+                .style('cursor', 'pointer');
+
+            // Animate dots appearing
+            dots.transition()
+                .delay((d, i) => i * 200 + 1000)
+                .duration(300)
+                .attr('r', 6);
+
+            // Add hover effects to dots
+            dots.on('mouseover', function(event, d) {
+                const tooltip = d3.select('#tooltip');
+                tooltip.style('opacity', 1)
+                    .html(`<strong>${d.label}</strong><br>Value: ${d.value}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', 8)
+                    .attr('stroke-width', 3);
+            })
+            .on('mouseout', function() {
+                d3.select('#tooltip').style('opacity', 0);
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', 6)
+                    .attr('stroke-width', 2);
+            });
+
+            // X-axis
+            g.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(xScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Y-axis
+            g.append('g')
+                .call(d3.axisLeft(yScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Value labels above dots
+            g.selectAll('.value-label')
+                .data(chartData)
+                .enter()
+                .append('text')
+                .attr('class', 'value-label')
+                .attr('x', d => xScale(d.label))
+                .attr('y', d => yScale(d.value) - 15)
+                .attr('text-anchor', 'middle')
+                .attr('fill', '#333')
+                .attr('font-size', '12px')
+                .attr('font-weight', 'bold')
+                .text(d => d.value)
+                .style('opacity', 0)
+                .transition()
+                .delay((d, i) => i * 200 + 1300)
+                .duration(300)
+                .style('opacity', 1);
+        }
+
+        // Render pie chart
+        function renderPieChart() {
+            const svg = d3.select('#chartSvg');
+            const g = svg.select('g');
+
+            // Clear existing chart
+            g.selectAll('*').remove();
+
+            if (chartData.length === 0) {
+                g.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height / 2)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#ccc')
+                    .attr('font-size', '18px')
+                    .text('No data to display');
+                return;
+            }
+
+            // Calculate center and radius
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) / 3;
+
+            // Calculate total for percentages
+            const total = d3.sum(chartData, d => d.value);
+
+            // Pie chart colors matching the reference
+            const pieColors = [
+                '#9c88ff', // Purple (Apples)
+                '#66d9ef', // Light Blue (Bananas) 
+                '#ffa726', // Orange (Oranges)
+                '#ef5350', // Red/Pink (Grapes)
+                '#ab47bc', // Deep Purple
+                '#42a5f5', // Blue
+                '#26c6da', // Cyan
+                '#ffee58'  // Yellow
+            ];
+
+            // Update chartData with pie colors
+            chartData.forEach((d, i) => {
+                d.pieColor = pieColors[i % pieColors.length];
+                d.percentage = ((d.value / total) * 100).toFixed(0);
+            });
+
+            // Create pie generator
+            const pie = d3.pie()
+                .value(d => d.value)
+                .sort(null);
+
+            // Create arc generator
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+
+            // Create arc for hover effect (slightly larger)
+            const arcHover = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius + 10);
+
+            // Create pie slices
+            const slices = g.selectAll('.slice')
+                .data(pie(chartData))
+                .enter()
+                .append('g')
+                .attr('class', 'slice')
+                .attr('transform', `translate(${centerX}, ${centerY})`);
+
+            // Add pie segments
+            const paths = slices.append('path')
+                .attr('d', arc)
+                .attr('fill', d => d.data.pieColor)
+                .style('cursor', 'pointer')
+                .style('opacity', 0);
+
+            // Animate pie slices
+            paths.transition()
+                .delay((d, i) => i * 200)
+                .duration(800)
+                .style('opacity', 1)
+                .attrTween('d', function(d) {
+                    const interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+                    return function(t) {
+                        return arc(interpolate(t));
+                    };
+                });
+
+            // Add hover effects
+            paths.on('mouseover', function(event, d) {
+                const tooltip = d3.select('#tooltip');
+                tooltip.style('opacity', 1)
+                    .html(`<strong>${d.data.label}</strong><br>Value: ${d.data.value}<br>Percentage: ${d.data.percentage}%`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('d', arcHover);
+            })
+            .on('mouseout', function() {
+                d3.select('#tooltip').style('opacity', 0);
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('d', arc);
+            });
+
+            // Add percentage labels outside the pie
+            const labelArc = d3.arc()
+                .innerRadius(radius + 20)
+                .outerRadius(radius + 20);
+
+            slices.append('text')
+                .attr('transform', d => `translate(${labelArc.centroid(d)})`)
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'middle')
+                .attr('fill', '#666')
+                .attr('font-size', '12px')
+                .attr('font-weight', 'bold')
+                .style('opacity', 0)
+                .text(d => `${d.data.label} ${d.data.percentage}%`)
+                .transition()
+                .delay((d, i) => i * 200 + 800)
+                .duration(300)
+                .style('opacity', 1);
+
+            // Add center value display
+            const centerGroup = g.append('g')
+                .attr('transform', `translate(${centerX}, ${centerY})`);
+
+            // Center circle background
+            centerGroup.append('circle')
+                .attr('r', 40)
+                .attr('fill', 'white')
+                .attr('stroke', '#e0e0e0')
+                .attr('stroke-width', 2)
+                .style('opacity', 0)
+                .transition()
+                .delay(1200)
+                .duration(300)
+                .style('opacity', 1);
+
+            // Center label
+            centerGroup.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('y', -8)
+                .attr('fill', '#666')
+                .attr('font-size', '12px')
+                .attr('font-weight', '500')
+                .style('opacity', 0)
+                .text('Value')
+                .transition()
+                .delay(1200)
+                .duration(300)
+                .style('opacity', 1);
+
+            // Center value
+            centerGroup.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('y', 8)
+                .attr('fill', '#333')
+                .attr('font-size', '16px')
+                .attr('font-weight', 'bold')
+                .style('opacity', 0)
+                .text(total)
+                .transition()
+                .delay(1200)
+                .duration(300)
+                .style('opacity', 1);
+
+            // Add legend lines connecting labels to slices
+            const lineGenerator = d3.line();
+
+            slices.each(function(d, i) {
+                const slice = d3.select(this);
+                const centroid = arc.centroid(d);
+                const labelPos = labelArc.centroid(d);
+                
+                // Create a subtle line from slice to label
+                slice.append('path')
+                    .attr('d', lineGenerator([
+                        [centroid[0] * 0.8, centroid[1] * 0.8],
+                        [labelPos[0] * 0.9, labelPos[1] * 0.9]
+                    ]))
+                    .attr('stroke', '#ccc')
+                    .attr('stroke-width', 1)
+                    .attr('fill', 'none')
+                    .style('opacity', 0)
+                    .transition()
+                    .delay(i * 200 + 1000)
+                    .duration(300)
+                    .style('opacity', 0.5);
+            });
+        }
+
+        // Render scatter plot
+        function renderScatterPlot() {
+            const svg = d3.select('#chartSvg');
+            const g = svg.select('g');
+
+            // Clear existing chart
+            g.selectAll('*').remove();
+
+            if (chartData.length === 0) {
+                g.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height / 2)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#ccc')
+                    .attr('font-size', '18px')
+                    .text('No data to display');
+                return;
+            }
+
+            // For scatter plot, we need x and y values
+            // If data doesn't have x,y coordinates, generate them from value
+            chartData.forEach((d, i) => {
+                if (!d.hasOwnProperty('x') || !d.hasOwnProperty('y')) {
+                    // Generate scatter coordinates based on value and index
+                    d.x = d.value + (Math.random() - 0.5) * 10;
+                    d.y = 20 + (Math.random() * 40);
+                }
+            });
+
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain([0, d3.max(chartData, d => d.x) + 10])
+                .range([0, width]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(chartData, d => d.y) + 10])
+                .range([height, 0]);
+
+            // Grid lines
+            g.selectAll('.grid-line-x')
+                .data(xScale.ticks())
+                .enter()
+                .append('line')
+                .attr('class', 'grid-line')
+                .attr('x1', d => xScale(d))
+                .attr('x2', d => xScale(d))
+                .attr('y1', 0)
+                .attr('y2', height);
+
+            g.selectAll('.grid-line-y')
+                .data(yScale.ticks())
+                .enter()
+                .append('line')
+                .attr('class', 'grid-line')
+                .attr('x1', 0)
+                .attr('x2', width)
+                .attr('y1', d => yScale(d))
+                .attr('y2', d => yScale(d));
+
+            // Add scatter points
+            const points = g.selectAll('.scatter-point')
+                .data(chartData)
+                .enter()
+                .append('circle')
+                .attr('class', 'scatter-point')
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y))
+                .attr('r', 0)
+                .attr('fill', '#ff6b35')
+                .attr('stroke', 'white')
+                .attr('stroke-width', 2)
+                .style('cursor', 'pointer')
+                .style('opacity', 0.8);
+
+            // Animate points appearing
+            points.transition()
+                .delay((d, i) => i * 200)
+                .duration(500)
+                .attr('r', 8);
+
+            // Add hover effects
+            points.on('mouseover', function(event, d) {
+                const tooltip = d3.select('#tooltip');
+                tooltip.style('opacity', 1)
+                    .html(`<strong>${d.label}</strong><br>X: ${Math.round(d.x)}<br>Y: ${Math.round(d.y)}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', 12)
+                    .attr('stroke-width', 3);
+            })
+            .on('mouseout', function() {
+                d3.select('#tooltip').style('opacity', 0);
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', 8)
+                    .attr('stroke-width', 2);
+            });
+
+            // X-axis
+            g.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(xScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Y-axis
+            g.append('g')
+                .call(d3.axisLeft(yScale))
+                .selectAll('text')
+                .attr('class', 'axis-label');
+
+            // Add axis labels
+            g.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', 0 - margin.left)
+                .attr('x', 0 - (height / 2))
+                .attr('dy', '1em')
+                .style('text-anchor', 'middle')
+                .attr('class', 'axis-label')
+                .attr('font-size', '14px')
+                .text('Y Axis');
+
+            g.append('text')
+                .attr('transform', `translate(${width / 2}, ${height + margin.bottom})`)
+                .style('text-anchor', 'middle')
+                .attr('class', 'axis-label')
+                .attr('font-size', '14px')
+                .text('X Axis');
+
+            // Add coordinate labels near some points (like in reference)
+            const selectedPoints = chartData.slice(0, 2); // Show labels for first 2 points
+            selectedPoints.forEach((d, i) => {
+                const labelGroup = g.append('g')
+                    .attr('transform', `translate(${xScale(d.x)}, ${yScale(d.y)})`);
+
+                // Background rectangle for coordinates
+                const textBg = labelGroup.append('rect')
+                    .attr('x', 15)
+                    .attr('y', -25)
+                    .attr('width', 40)
+                    .attr('height', 35)
+                    .attr('fill', 'white')
+                    .attr('stroke', '#ddd')
+                    .attr('stroke-width', 1)
+                    .attr('rx', 4)
+                    .style('opacity', 0);
+
+                // X coordinate
+                labelGroup.append('text')
+                    .attr('x', 35)
+                    .attr('y', -12)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#666')
+                    .attr('font-size', '10px')
+                    .attr('font-weight', 'bold')
+                    .text(`${Math.round(d.x)}`)
+                    .style('opacity', 0);
+
+                // Y coordinate
+                labelGroup.append('text')
+                    .attr('x', 35)
+                    .attr('y', -2)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#666')
+                    .attr('font-size', '10px')
+                    .attr('font-weight', 'bold')
+                    .text(`${Math.round(d.y)}`)
+                    .style('opacity', 0);
+
+                // Animate labels
+                labelGroup.selectAll('*')
+                    .transition()
+                    .delay(i * 200 + 1000)
+                    .duration(300)
+                    .style('opacity', 1);
+            });
+        }
+
+        // Render data table
+        function renderDataTable() {
+            const chartArea = document.querySelector('.chart-area');
+            const svg = document.getElementById('chartSvg');
+            
+            // Hide SVG and show table
+            svg.style.display = 'none';
+            
+            // Remove existing table if any
+            const existingTable = chartArea.querySelector('.data-table');
+            if (existingTable) {
+                existingTable.remove();
+            }
+
+            if (chartData.length === 0) {
+                const noDataDiv = document.createElement('div');
+                noDataDiv.style.textAlign = 'center';
+                noDataDiv.style.color = '#ccc';
+                noDataDiv.style.fontSize = '18px';
+                noDataDiv.style.marginTop = '100px';
+                noDataDiv.textContent = 'No data to display';
+                chartArea.appendChild(noDataDiv);
+                return;
+            }
+
+            // Calculate total and percentages
+            const total = chartData.reduce((sum, d) => sum + d.value, 0);
+            
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            const headers = ['Label', 'Value', 'Percentage', 'Actions'];
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            chartData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const percentage = ((item.value / total) * 100).toFixed(1);
+                
+                // Label cell
+                const labelCell = document.createElement('td');
+                labelCell.textContent = item.label;
+                labelCell.style.fontWeight = '500';
+                row.appendChild(labelCell);
+                
+                // Value cell
+                const valueCell = document.createElement('td');
+                valueCell.textContent = item.value;
+                valueCell.style.fontWeight = '500';
+                row.appendChild(valueCell);
+                
+                // Percentage cell
+                const percentageCell = document.createElement('td');
+                const percentageBadge = document.createElement('span');
+                percentageBadge.className = 'percentage-badge';
+                percentageBadge.textContent = `${percentage}%`;
+                percentageCell.appendChild(percentageBadge);
+                row.appendChild(percentageCell);
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = 'Delete this item';
+                deleteBtn.onclick = () => deleteDataPoint(index);
+                actionsCell.appendChild(deleteBtn);
+                row.appendChild(actionsCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            // Create total row
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            
+            const totalLabelCell = document.createElement('td');
+            totalLabelCell.textContent = 'Total';
+            totalLabelCell.style.fontWeight = 'bold';
+            totalRow.appendChild(totalLabelCell);
+            
+            const totalValueCell = document.createElement('td');
+            totalValueCell.textContent = total;
+            totalValueCell.style.fontWeight = 'bold';
+            totalRow.appendChild(totalValueCell);
+            
+            const totalPercentageCell = document.createElement('td');
+            totalPercentageCell.textContent = '100%';
+            totalPercentageCell.style.fontWeight = 'bold';
+            totalRow.appendChild(totalPercentageCell);
+            
+            const totalActionsCell = document.createElement('td');
+            totalActionsCell.textContent = '';
+            totalRow.appendChild(totalActionsCell);
+            
+            tbody.appendChild(totalRow);
+            table.appendChild(tbody);
+            
+            // Add table to chart area
+            chartArea.appendChild(table);
+            
+            // Animate table rows
+            const rows = table.querySelectorAll('tbody tr:not(.total-row)');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Animate total row
+            const totalRowElement = table.querySelector('.total-row');
+            totalRowElement.style.opacity = '0';
+            totalRowElement.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                totalRowElement.style.transition = 'all 0.3s ease';
+                totalRowElement.style.opacity = '1';
+                totalRowElement.style.transform = 'translateY(0)';
+            }, rows.length * 100 + 200);
+        }
+
+        // Delete data point function
+        function deleteDataPoint(index) {
+            chartData.splice(index, 1);
+            renderChart();
+        }
+
+        // Add data point
+        function addDataPoint() {
+            const labelInput = document.getElementById('labelInput');
+            const valueInput = document.getElementById('valueInput');
+            const xValueInput = document.getElementById('xValueInput');
+            const yValueInput = document.getElementById('yValueInput');
+
+            const label = labelInput.value.trim();
+
+            if (!label) {
+                alert('Please enter a valid label');
+                return;
+            }
+
+            let dataPoint = { label };
+
+            if (currentChartType === 'scatter') {
+                const xValue = parseFloat(xValueInput.value);
+                const yValue = parseFloat(yValueInput.value);
+                
+                if (isNaN(xValue) || isNaN(yValue)) {
+                    alert('Please enter valid X and Y values');
+                    return;
+                }
+                
+                dataPoint.x = xValue;
+                dataPoint.y = yValue;
+                dataPoint.value = xValue; // For compatibility with other charts
+            } else {
+                const value = parseFloat(valueInput.value);
+                
+                if (isNaN(value)) {
+                    alert('Please enter a valid value');
+                    return;
+                }
+                
+                dataPoint.value = value;
+            }
+
+            // Generate random color
+            const colors = ['#4facfe', '#00f2fe', '#667eea', '#764ba2', '#f093fb', '#f5576c', '#ff6b35', '#43e97b'];
+            dataPoint.color = colors[chartData.length % colors.length];
+
+            chartData.push(dataPoint);
+
+            // Clear inputs
+            labelInput.value = '';
+            valueInput.value = '';
+            xValueInput.value = '';
+            yValueInput.value = '';
+
+            // Re-render chart
+            renderChart();
+        }
+
+        // Load sample data
+        function loadSampleData() {
+            chartData = [
+                { label: 'Apples', value: 25, color: '#4facfe', x: 15, y: 20 },
+                { label: 'Bananas', value: 35, color: '#00f2fe', x: 25, y: 45 },
+                { label: 'Oranges', value: 20, color: '#667eea', x: 45, y: 30 },
+                { label: 'Grapes', value: 30, color: '#764ba2', x: 60, y: 55 },
+                { label: 'Berries', value: 15, color: '#f093fb', x: 35, y: 25 },
+                { label: 'Peaches', value: 22, color: '#f5576c', x: 50, y: 35 }
+            ];
+            renderChart();
+        }
+
+        // Clear all data
+        function clearAllData() {
+            chartData = [];
+            renderChart();
+        }
+
+        // Chart type selection
+        document.querySelectorAll('.chart-type').forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.chart-type').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Update chart type
+                currentChartType = this.dataset.type;
+                
+                // Update input fields based on chart type
+                updateInputFields();
+                
+                // Update title
+                const titles = {
+                    bar: '📊 Interactive Bar Chart',
+                    line: '📈 Interactive Line Chart',
+                    pie: '🥧 Interactive Pie Chart',
+                    scatter: '⚬ Interactive Scatter Plot',
+                    table: '📋 Interactive Data Table'
+                };
+                
+                document.querySelector('.chart-title').textContent = titles[currentChartType];
+
+                // Render the selected chart type
+                if (currentChartType === 'bar' || currentChartType === 'line' || currentChartType === 'pie' || currentChartType === 'scatter' || currentChartType === 'table') {
+                    renderChart();
+                } else {
+                    const svg = d3.select('#chartSvg');
+                    const g = svg.select('g');
+                    g.selectAll('*').remove();
+                    g.append('text')
+                        .attr('x', width / 2)
+                        .attr('y', height / 2)
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', '#ccc')
+                        .attr('font-size', '18px')
+                        .text(`${titles[currentChartType]} - Coming Soon!`);
+                }
+            });
+        });
+
+        // Update input fields based on chart type
+        function updateInputFields() {
+            const valueGroup = document.getElementById('valueGroup');
+            const xValueGroup = document.getElementById('xValueGroup');
+            const yValueGroup = document.getElementById('yValueGroup');
+            
+            if (currentChartType === 'scatter') {
+                valueGroup.style.display = 'none';
+                xValueGroup.style.display = 'block';
+                yValueGroup.style.display = 'block';
+            } else {
+                valueGroup.style.display = 'block';
+                xValueGroup.style.display = 'none';
+                yValueGroup.style.display = 'none';
+            }
+        }
+
+        // Enter key support for inputs
+        document.getElementById('labelInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (currentChartType === 'scatter') {
+                    document.getElementById('xValueInput').focus();
+                } else {
+                    document.getElementById('valueInput').focus();
+                }
+            }
+        });
+
+        document.getElementById('valueInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addDataPoint();
+            }
+        });
+
+        document.getElementById('xValueInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('yValueInput').focus();
+            }
+        });
+
+        document.getElementById('yValueInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addDataPoint();
+            }
+        });
+
+        // Initialize the chart when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load D3.js
+            const script = document.createElement('script');
+            script.src = 'https://d3js.org/d3.v7.min.js';
+            script.onload = function() {
+                initChart();
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>
